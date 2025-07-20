@@ -37,7 +37,7 @@ def send_message(text):
         "Content-Type": "application/json"
     }
     payload = {
-        "receiver_id": "11287640",   # 숫자 ID 직접 입력
+        "receiver_id": os.environ['KAKAO_WORK_USER_ID'],  # 환경변수 사용
         "receiver_type": "user",
         "text": text
     }
