@@ -1,30 +1,28 @@
 name: Daily News Send
 
 on:
-  workflow_dispatch:  # 수동 실행용
   schedule:
-    - cron: '0 23 * * *'  # 한국 시간 오전 8시 (UTC+9 기준)
+    - cron: '0 23 * * *'  # 매일 한국시간 8시 (UTC+9)
+  workflow_dispatch:
 
 jobs:
   send_news:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
-      - name: Set up Python
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
+          python-version: '3.10'
 
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install requests beautifulsoup4
+        run: pip install requests beautifulsoup4 feedparser
 
-      - name: Run news send script
+      - name: Run send_news.py
         env:
-          APP_KEY: ${{ secrets.APP_KEY }}
-          EMAIL: ${{ secrets.EMAIL }}
-        run: |
-          python send_news.py
+          KAKAO_WORK_BOT_TOKEN: ${{ secrets.KAKAO_WORK_BOT_TOKEN }}
+          KAKAO_WORK_USER_ID: ${{ secrets.KAKAO_WORK_USER_ID }}
+        run: python send_news.py
