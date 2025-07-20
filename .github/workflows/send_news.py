@@ -1,48 +1,25 @@
 import requests
-from bs4 import BeautifulSoup
-import json
+import feedparser
 import os
+import json
 
 def get_top_news():
-    headers = {"User-Agent": "Mozilla/5.0"}
+    # Naver 뉴스 RSS (정치면 기준. 다른 섹션도 가능)
+    rss_url = "https://rss.etoday.co.kr/newssection.xml?section=1"  # 이투데이 정치 섹션 RSS 예시
 
-    url = 'https://news.naver.com/main/main.naver?mode=LSD&mid=shm&sid1=100'  # 정치 분야 주요 뉴스
-    res = requests.get(url, headers=headers)
-    soup = BeautifulSoup(res.text, 'html.parser')
-
-    articles = soup.select('div.cluster_body a.cluster_text_headline')
-    seen_links = set()
+    feed = feedparser.parse(rss_url)
     news_list = []
 
-    for article in articles:
-        title = article.get_text(strip=True)
-        link = article['href']
-
-        if link in seen_links:
-            continue
-        seen_links.add(link)
-
-        # 본문 가져오기
-        try:
-            article_res = requests.get(link, headers=headers)
-            article_soup = BeautifulSoup(article_res.text, 'html.parser')
-            content = article_soup.select_one('#dic_area')
-
-            if content:
-                summary = content.get_text(strip=True)[:100] + "..."
-            else:
-                summary = "(본문 요약 불가)"
-        except Exception as e:
-            summary = "(본문 불러오기 오류)"
+    for entry in feed.entries[:10]:
+        title = entry.title
+        summary = entry.summary if hasattr(entry, "summary") else "(요약 없음)"
+        link = entry.link
 
         news_list.append({
             "title": title,
-            "link": link,
-            "summary": summary
+            "summary": summary,
+            "link": link
         })
-
-        if len(news_list) >= 10:
-            break
 
     return news_list
 
@@ -64,10 +41,10 @@ def send_message(text):
         "text": text
     }
 
-    res = requests.post(url, headers=headers, data=json.dumps(payload))
-    print(res.status_code, res.text)
+    response = requests.post(url, headers=headers, data=json.dumps(payload))
+    print(response.status_code, response.text)
 
 if __name__ == "__main__":
     news = get_top_news()
-    msg = format_news_message(news)
-    send_message(msg)
+    message = format_news_message(news)
+    send_message(message)
