@@ -4,6 +4,31 @@ import feedparser
 import os
 import json
 
+def send_message(text):
+    token = os.environ.get("KAKAO_WORK_BOT_TOKEN")
+    user_id = os.environ.get("KAKAO_WORK_USER_ID")
+
+    if not token or not user_id:
+        print("❌ 환경변수가 설정되지 않았습니다.")
+        print("KAKAO_WORK_BOT_TOKEN:", repr(token))
+        print("KAKAO_WORK_USER_ID:", repr(user_id))
+        return
+
+    url = "https://api.kakaowork.com/v1/messages.send"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "receiver_id": user_id,
+        "receiver_type": "user",
+        "text": text
+    }
+
+    response = requests.post(url, headers=headers, data=json.dumps(payload))
+    print("📨 요청 결과:", response.status_code, response.text)
+
+
 def get_top_news():
     # Naver 뉴스 RSS (정치면 기준. 다른 섹션도 가능)
     rss_url = "https://rss.etoday.co.kr/newssection.xml?section=1"  # 이투데이 정치 섹션 RSS 예시
